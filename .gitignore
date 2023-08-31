@@ -1,0 +1,26 @@
+**/.tabnine.model
+__pycache__/
+wxpy.pkl
+_log/
+_data/
+*.log
+*.png
+*.jpg
+*.dll
+recordResult/
+images/
+*.pkl
+*.exe
+*.rar
+*.zip
+recordresult
+node_modules
+.vscode
+.history
+.idea
+/*.iml
+
+# 忽略一些文件
+python/xml/楚雄xml模板.xml
+python/xml/result.json
+.DS_Store
