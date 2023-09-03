@@ -1,13 +1,22 @@
 syntax = "proto3";
-
+import "google/protobuf/timestamp.proto";
 option go_package = "github.com/xiangnan0811/goTest/grpc_hello/hello";
 
 service Greeter {
   rpc SayHello (HelloRequest) returns (HelloReply) {}
 }
 
+enum Gender {
+  MALE = 0;
+  FEMALE = 2;
+}
+
 message HelloRequest {
   string name = 1;
+  string url = 2;
+  Gender gender = 3;
+  map<string, string> map = 4;
+  google.protobuf.Timestamp addTime = 5;
 }
 
 message HelloReply {
