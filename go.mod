@@ -1,6 +1,6 @@
 module github.com/xiangnan0811/goTest
 
-go 1.20
+go 1.21
 
 require (
 	google.golang.org/grpc v1.57.0
