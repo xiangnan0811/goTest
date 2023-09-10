@@ -82,13 +82,32 @@ func TimeConsumingMiddleware() gin.HandlerFunc {
     }
 }
 
+func TokenAuthMiddleware() gin.HandlerFunc {
+    return func(c *gin.Context) {
+        var token string
+        for k, v := range c.Request.Header {
+            if k == "X-Token" {
+                token = v[0]
+            }
+        }
+        
+        if token != "123456" {
+            c.JSON(http.StatusUnauthorized, gin.H{
+                "error": "Unauthorized",
+            })
+            c.Abort()
+            return
+        }
+    }
+}
+
 func main() {
     if err := InitTrans("zh"); err != nil {
         fmt.Println("获取翻译器出错")
         return
     }
 	r := gin.Default()
-    r.Use(TimeConsumingMiddleware())
+    r.Use(TimeConsumingMiddleware(), TokenAuthMiddleware())
     r.POST("/loginJSON", loginJSON)
     r.POST("/signup", signUp)
     r.Run(":8080")
