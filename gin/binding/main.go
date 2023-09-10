@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -71,12 +72,23 @@ func InitTrans(locale string) (err error) {
     return
 }
 
+func TimeConsumingMiddleware() gin.HandlerFunc {
+    return func (c *gin.Context) {
+        s := time.Now()
+        c.Next()
+        fmt.Printf("time consuming: %v\n", time.Since(s))
+        status := c.Writer.Status()
+        fmt.Println("status: ", status)
+    }
+}
+
 func main() {
     if err := InitTrans("zh"); err != nil {
         fmt.Println("获取翻译器出错")
         return
     }
 	r := gin.Default()
+    r.Use(TimeConsumingMiddleware())
     r.POST("/loginJSON", loginJSON)
     r.POST("/signup", signUp)
     r.Run(":8080")
