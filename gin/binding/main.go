@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"reflect"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/gin-gonic/gin/binding"
@@ -29,10 +31,28 @@ type SignUpParam struct {
 
 var trans ut.Translator
 
+func removeTopStruct(fields map[string]string) map[string]string {
+    r := make(map[string]string, len(fields))
+    for field, val := range fields {
+        r[field[strings.Index(field, ".")+1:]] = val
+    }
+    return r
+}
+
 func InitTrans(locale string) (err error) {
+    // 修改 gin 的 Validator 引擎属性，实现自定义翻译器
     if v, ok := binding.Validator.Engine().(*validator.Validate); ok {
-        zhT := zh.New()
-        enT := en.New()
+        // 注册一个获取 json tag 的自定义方法
+        v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+        name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+            if name == "-" {
+                return ""
+            }
+            return name
+        })
+        zhT := zh.New() // 中文翻译器
+        enT := en.New() // 英文翻译器
+        // 第一个参数是备用（fallback）的语言环境, 后面参数是应该支持的语言环境（支持多个）
         uni := ut.New(enT, enT, zhT)
         trans, ok = uni.GetTranslator(locale)
         if !ok {
@@ -73,7 +93,7 @@ func signUp(c *gin.Context) {
             return
         }
         c.JSON(http.StatusBadRequest, gin.H{
-            "error": errs.Translate(trans),
+            "error": removeTopStruct(errs.Translate(trans)),
         })
         return
     }
@@ -93,7 +113,7 @@ func loginJSON(c *gin.Context) {
             return
         }
         c.JSON(http.StatusBadRequest, gin.H{
-            "error": errs.Translate(trans),
+            "error": removeTopStruct(errs.Translate(trans)),
         })
         return
     }
