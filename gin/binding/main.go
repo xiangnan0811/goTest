@@ -3,8 +3,11 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
 	"reflect"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -110,7 +113,24 @@ func main() {
     r.Use(TimeConsumingMiddleware(), TokenAuthMiddleware())
     r.POST("/loginJSON", loginJSON)
     r.POST("/signup", signUp)
-    r.Run(":8080")
+    go func() {
+        if err := r.Run(":8081"); err != nil {
+            fmt.Println("启动服务失败")
+        }
+    }()
+
+    // graceful shutdown
+    // 1. 创建一个信号通道
+    quit := make(chan os.Signal)
+    // 2. 信号通知
+    // kill 默认会发送 syscall.SIGTERM 信号
+    // kill -2 发送 syscall.SIGINT 信号，我们常用的Ctrl+C就是触发系统SIGINT信号
+    // kill -9 发送 syscall.SIGKILL 信号，但是不能被捕获，所以不需要添加它
+    // signal.Notify把收到的 syscall.SIGINT 或 syscall.SIGTERM 信号转发给 quit 通道
+    signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+    // 3. 阻塞主进程
+    <-quit
+    fmt.Println("Shutdown Server ...")
 }
 
 func signUp(c *gin.Context) {
